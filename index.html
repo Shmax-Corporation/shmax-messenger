@@ -48,11 +48,14 @@
   <div id="chatPage" class="page hidden">
     <div class="chat-container">
       <header>
-        <h2>Shmax</h2>
-        <div id="userBadge">
-          <span id="currentUser"></span>
-          <img id="userPhoto" alt="Фото" width="30" height="30" style="border-radius: 50%; margin-left: 10px;">
-        </div>
+  <h2>Shmax</h2>
+  <div id="userControls">
+    <div id="userBadge">
+      <span id="currentUser"></span>
+      <img id="userPhoto" alt="Фото" width="30" height="30" style="border-radius: 50%; margin-left: 10px;">
+    </div>
+    <button id="logoutBtn" title="Выйти из аккаунта" onclick="signOut()">🚪</button>
+  </div>
       </header>
 
       <div id="messages" class="messages">

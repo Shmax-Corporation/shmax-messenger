@@ -251,3 +251,26 @@ header {
   height: 1px;
   background: #ddd;
 }
+
+/* Управление пользователем */
+#userControls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+#userControls button {
+  background: #e74c3c;
+  color: white;
+  border: none;
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 1.1rem;
+  transition: background 0.2s;
+}
+
+#userControls button:hover {
+  background: #c0392b;
+}

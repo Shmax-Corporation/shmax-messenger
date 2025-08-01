@@ -1,4 +1,5 @@
 ﻿// Firebase конфиг — ЗАМЕНИ НА СВОЙ!
+// Получи его в Firebase Console → Project Settings → Your apps → Config
 const firebaseConfig = {
   apiKey: "AIzaSyCX_MwbmEQ-__rZJF7cIDjXh3W1FWWV0vY",
   authDomain: "shmax-messenger.firebaseapp.com",
@@ -9,28 +10,31 @@ const firebaseConfig = {
   measurementId: "G-21HCVG44B5"
 };
 
-// Инициализация
+// Инициализация Firebase
 firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const database = firebase.database();
 
+// Глобальная переменная для текущего пользователя
 let currentUser = null;
 
-// При загрузке — проверка состояния авторизации
+// При загрузке страницы — проверяем, вошёл ли пользователь
 window.onload = function () {
   auth.onAuthStateChanged((user) => {
     if (user) {
+      // Пользователь авторизован
       currentUser = user;
-      updateProfileDisplayName(); // Сохраняем имя при входе
+      updateProfileDisplayName(); // Убедимся, что у пользователя есть имя
       showChat(user);
       loadMessagesFromFirebase();
     } else {
+      // Пользователь не вошёл
       showAuth();
     }
   });
 };
 
-// Показать экран входа
+// Показать экран авторизации
 function showAuth() {
   document.getElementById('authPage').classList.remove('hidden');
   document.getElementById('chatPage').classList.add('hidden');
@@ -41,14 +45,16 @@ function showChat(user) {
   document.getElementById('authPage').classList.add('hidden');
   document.getElementById('chatPage').classList.remove('hidden');
 
-  const displayName = user.displayName || user.email.split('@')[0];
+  // Показываем имя
+  const displayName = user.displayName || user.email.split('@')[0].replace('.', ' ');
   document.getElementById('currentUser').textContent = displayName;
 
+  // Показываем фото
   const photoURL = user.photoURL || `https://ui-avatars.com/api/?name=${encodeURIComponent(displayName)}&background=2ecc71&color=fff`;
   document.getElementById('userPhoto').src = photoURL;
 }
 
-// Переключение форм
+// Переключение на форму входа
 function showLogin() {
   document.getElementById('loginForm').classList.remove('hidden');
   document.getElementById('registerForm').classList.add('hidden');
@@ -56,6 +62,7 @@ function showLogin() {
   document.getElementById('registerTab').classList.remove('active');
 }
 
+// Переключение на форму регистрации
 function showRegister() {
   document.getElementById('loginForm').classList.add('hidden');
   document.getElementById('registerForm').classList.remove('hidden');
@@ -70,22 +77,22 @@ function registerWithEmail() {
   const password = document.getElementById('registerPassword').value;
 
   if (!name || !email || !password) {
-    alert('Заполните все поля');
+    alert('Пожалуйста, заполните все поля');
     return;
   }
 
   auth.createUserWithEmailAndPassword(email, password)
-    .then((cred) => {
-      // Устанавливаем отображаемое имя
-      return cred.user.updateProfile({
+    .then((credential) => {
+      // После регистрации устанавливаем отображаемое имя
+      return credential.user.updateProfile({
         displayName: name
       });
     })
     .then(() => {
-      console.log('Пользователь зарегистрирован:', auth.currentUser);
+      console.log('Регистрация успешна:', auth.currentUser);
     })
     .catch((error) => {
-      alert('Ошибка: ' + error.message);
+      alert('Ошибка регистрации: ' + error.message);
     });
 }
 
@@ -93,6 +100,11 @@ function registerWithEmail() {
 function loginWithEmail() {
   const email = document.getElementById('loginEmail').value.trim();
   const password = document.getElementById('loginPassword').value;
+
+  if (!email || !password) {
+    alert('Введите email и пароль');
+    return;
+  }
 
   auth.signInWithEmailAndPassword(email, password)
     .catch((error) => {
@@ -103,25 +115,41 @@ function loginWithEmail() {
 // Вход через Google
 function signInWithGoogle() {
   const provider = new firebase.auth.GoogleAuthProvider();
-  auth.signInWithPopup(provider).catch((error) => {
-    alert('Ошибка: ' + error.message);
-  });
+  auth.signInWithPopup(provider)
+    .catch((error) => {
+      alert('Ошибка входа через Google: ' + error.message);
+    });
 }
 
-// Обновляем имя в профиле (если пользователь изменил имя)
+// Выход из аккаунта
+function signOut() {
+  auth.signOut()
+    .then(() => {
+      console.log("Пользователь успешно вышел");
+    })
+    .catch((error) => {
+      alert('Ошибка при выходе: ' + error.message);
+    });
+}
+
+// Обновляем имя в профиле (если его нет)
 function updateProfileDisplayName() {
   const user = auth.currentUser;
   if (user && !user.displayName) {
     const name = user.email.split('@')[0].replace('.', ' ');
-    user.updateProfile({ displayName: name });
+    user.updateProfile({
+      displayName: name
+    }).then(() => {
+      console.log("Имя пользователя установлено:", name);
+    });
   }
 }
 
-// Загрузка сообщений
+// Загрузка сообщений из Firebase
 function loadMessagesFromFirebase() {
   const messagesRef = database.ref('messages');
   const messagesContainer = document.getElementById('messages');
-  messagesContainer.innerHTML = '';
+  messagesContainer.innerHTML = ''; // Очистим перед загрузкой
 
   messagesRef.on('child_added', (snapshot) => {
     const msg = snapshot.val();
@@ -129,7 +157,7 @@ function loadMessagesFromFirebase() {
   });
 }
 
-// Добавить сообщение в DOM
+// Добавление сообщения в интерфейс
 function addMessageToDOM(text, sender) {
   const container = document.getElementById('messages');
   const messageElement = document.createElement('div');
@@ -145,14 +173,18 @@ function addMessageToDOM(text, sender) {
     messageElement.classList.add('other');
   }
 
-  const prefix = sender === 'system' ? '' : sender === currentUser?.email ? '' : `${displayName}: `;
-  messageElement.textContent = prefix + text;
+  // Форматирование текста сообщения
+  let messageText = text;
+  if (sender !== 'system' && sender !== currentUser?.email) {
+    messageText = `${displayName}: ${text}`;
+  }
 
+  messageElement.textContent = messageText;
   container.appendChild(messageElement);
   container.scrollTop = container.scrollHeight;
 }
 
-// Получить имя из email
+// Получить отображаемое имя по email
 function getDisplayName(email) {
   if (email === 'system') return 'Система';
   return email.split('@')[0].replace('.', ' ');
@@ -173,10 +205,10 @@ function sendMessage() {
     timestamp: firebase.database.ServerValue.TIMESTAMP
   });
 
-  input.value = '';
+  input.value = ''; // Очистить поле
 }
 
-// Отправка по Enter
+// Отправка по нажатию Enter
 document.getElementById('messageInput').addEventListener('keypress', function (e) {
   if (e.key === 'Enter') {
     sendMessage();
