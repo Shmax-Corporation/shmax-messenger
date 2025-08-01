@@ -22,14 +22,13 @@ let currentUser = null;
 window.onload = function () {
   auth.onAuthStateChanged((user) => {
     if (user) {
-      // Пользователь авторизован
       currentUser = user;
-      updateProfileDisplayName(); // Убедимся, что у пользователя есть имя
+      updateProfileDisplayName();
       showChat(user);
       loadMessagesFromFirebase();
     } else {
-      // Пользователь не вошёл
-      showAuth();
+      currentUser = null;
+      showAuth(); // ← вот сюда переходит после выхода
     }
   });
 };
