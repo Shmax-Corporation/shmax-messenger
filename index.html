@@ -44,30 +44,45 @@
   </div>
 </div>
 
-  <!-- Основной чат -->
-  <div id="chatPage" class="page hidden">
-    <div class="chat-container">
+<!-- Основной интерфейс -->
+<div id="chatPage" class="page hidden">
+  <div class="main-layout">
+    <!-- Левая панель: пользователи и чаты -->
+    <aside class="sidebar">
       <header>
-  <h2>Shmax</h2>
-  <div id="userControls">
-    <div id="userBadge">
-      <span id="currentUser"></span>
-      <img id="userPhoto" alt="Фото" width="30" height="30" style="border-radius: 50%; margin-left: 10px;">
-    </div>
-    <button id="logoutBtn" title="Выйти из аккаунта" onclick="signOut()">🚪</button>
-  </div>
+        <h2>Shmax</h2>
+        <button onclick="signOut()" title="Выйти">🚪</button>
       </header>
 
-      <div id="messages" class="messages">
-        <div class="message system">Загрузка сообщений...</div>
+      <div class="tabs">
+        <button class="tab active">👥 Люди</button>
       </div>
 
-      <div class="input-area">
-        <input type="text" id="messageInput" placeholder="Напишите сообщение..." />
-        <button onclick="sendMessage()">Отправить</button>
+      <input type="text" placeholder="Поиск..." class="search-input" />
+
+      <div id="usersList" class="users-list"></div>
+    </aside>
+
+    <!-- Правая часть: чат -->
+    <main class="chat-area">
+      <div id="chatContainer" class="hidden">
+        <header class="chat-header">
+          <h3 id="chatHeader">Чат</h3>
+        </header>
+        <div id="messages" class="messages"></div>
+        <div class="input-area">
+          <input type="text" id="messageInput" placeholder="Написать сообщение..." />
+          <button onclick="sendMessage()">Отправить</button>
+        </div>
       </div>
-    </div>
+
+      <div class="welcome-screen">
+        <h3>Добро пожаловать в Shmax!</h3>
+        <p>Выберите пользователя слева, чтобы начать чат</p>
+      </div>
+    </main>
   </div>
+</div>
 
   <!-- Firebase SDK -->
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
