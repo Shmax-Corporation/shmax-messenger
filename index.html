@@ -7,13 +7,14 @@
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <!-- Страница регистрации -->
-  <div id="registerPage" class="page">
+  <!-- Страница входа -->
+  <div id="authPage" class="page">
     <div class="card">
       <h1>Shmax</h1>
-      <p>Добро пожаловать! Войдите, чтобы начать общение.</p>
-      <input type="text" id="username" placeholder="Введите имя" />
-      <button onclick="registerUser()">Войти в чат</button>
+      <p>Войдите через Google, чтобы начать общение</p>
+      <button id="googleSignIn" onclick="signInWithGoogle()">
+        🔔 Войти через Google
+      </button>
     </div>
   </div>
 
@@ -22,7 +23,10 @@
     <div class="chat-container">
       <header>
         <h2>Shmax</h2>
-        <span id="currentUser"></span>
+        <div id="userBadge">
+          <span id="currentUser"></span>
+          <img id="userPhoto" alt="Фото" width="30" height="30" style="border-radius: 50%; margin-left: 10px;">
+        </div>
       </header>
 
       <div id="messages" class="messages">
@@ -36,8 +40,9 @@
     </div>
   </div>
 
-  <!-- Подключаем Firebase SDK -->
+  <!-- Firebase SDK -->
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
 
   <script src="script.js"></script>

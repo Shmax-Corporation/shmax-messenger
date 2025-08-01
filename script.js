@@ -1,4 +1,4 @@
-﻿// ЗАМЕНИ НИЖЕ НА СВОЙ КОНФИГ ИЗ FIREBASE!
+﻿// Firebase конфиг — ЗАМЕНИ НА СВОЙ!
 const firebaseConfig = {
   apiKey: "AIzaSyCX_MwbmEQ-__rZJF7cIDjXh3W1FWWV0vY",
   authDomain: "shmax-messenger.firebaseapp.com",
@@ -9,50 +9,61 @@ const firebaseConfig = {
   measurementId: "G-21HCVG44B5"
 };
 
-// Инициализация Firebase
+// Инициализация
 firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
 const database = firebase.database();
 
-let username = '';
+let currentUser = null;
 
-// При загрузке — проверяем имя
+// При загрузке страницы — проверяем, авторизован ли пользователь
 window.onload = function () {
-  const savedUser = localStorage.getItem('shmax_username');
-  if (savedUser) {
-    username = savedUser;
-    document.getElementById('currentUser').textContent = username;
-    showChat();
-    loadMessagesFromFirebase();
-  }
+  auth.onAuthStateChanged((user) => {
+    if (user) {
+      // Пользователь вошёл
+      currentUser = user;
+      showChat(user);
+      loadMessagesFromFirebase();
+    } else {
+      // Не вошёл
+      showAuth();
+    }
+  });
 };
 
-function registerUser() {
-  const input = document.getElementById('username');
-  const name = input.value.trim();
-
-  if (name === '') {
-    alert('Введите имя!');
-    return;
-  }
-
-  username = name;
-  localStorage.setItem('shmax_username', name);
-  document.getElementById('currentUser').textContent = name;
-  showChat();
-  loadMessagesFromFirebase();
+// Показать экран входа
+function showAuth() {
+  document.getElementById('authPage').classList.remove('hidden');
+  document.getElementById('chatPage').classList.add('hidden');
 }
 
-function showChat() {
-  document.getElementById('registerPage').classList.add('hidden');
+// Показать чат
+function showChat(user) {
+  document.getElementById('authPage').classList.add('hidden');
   document.getElementById('chatPage').classList.remove('hidden');
+
+  document.getElementById('currentUser').textContent = user.displayName || user.email;
+  document.getElementById('userPhoto').src = user.photoURL || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(user.displayName || 'User') + '&background=2ecc71&color=fff';
 }
 
-// Загружаем сообщения из Firebase
+// Вход через Google
+function signInWithGoogle() {
+  const provider = new firebase.auth.GoogleAuthProvider();
+  auth.signInWithPopup(provider)
+    .catch((error) => {
+      alert('Ошибка входа: ' + error.message);
+    });
+}
+
+// Выход (опционально — можно добавить позже)
+function signOut() {
+  auth.signOut();
+}
+
+// Загрузка сообщений
 function loadMessagesFromFirebase() {
   const messagesRef = database.ref('messages');
   const messagesContainer = document.getElementById('messages');
-
-  messagesRef.off(); // очищаем предыдущие слушатели
   messagesContainer.innerHTML = '';
 
   messagesRef.on('child_added', (snapshot) => {
@@ -61,13 +72,13 @@ function loadMessagesFromFirebase() {
   });
 }
 
-// Добавить сообщение в интерфейс
+// Добавить сообщение в DOM
 function addMessageToDOM(text, sender) {
   const container = document.getElementById('messages');
   const messageElement = document.createElement('div');
   messageElement.classList.add('message');
 
-  if (sender === username) {
+  if (sender === currentUser?.email) {
     messageElement.classList.add('own');
   } else if (sender === 'system') {
     messageElement.classList.add('system');
@@ -75,22 +86,33 @@ function addMessageToDOM(text, sender) {
     messageElement.classList.add('other');
   }
 
-  messageElement.textContent = `${sender !== username && sender !== 'system' ? sender + ': ' : ''}${text}`;
+  const displayName = getDisplayName(sender);
+  const prefix = sender === 'system' ? '' : sender === currentUser?.email ? '' : `${displayName}: `;
+  messageElement.textContent = prefix + text;
+
   container.appendChild(messageElement);
   container.scrollTop = container.scrollHeight;
 }
 
-// Отправка сообщения в Firebase
+// Получить имя из email (или использовать email)
+function getDisplayName(email) {
+  if (email === 'system') return 'Система';
+  return email.split('@')[0].replace('.', ' ');
+}
+
+// Отправка сообщения
 function sendMessage() {
+  if (!currentUser) return;
+
   const input = document.getElementById('messageInput');
   const text = input.value.trim();
 
-  if (text === '' || !username) return;
+  if (text === '') return;
 
-  const newMessageRef = database.ref('messages').push();
-  newMessageRef.set({
+  const messagesRef = database.ref('messages');
+  messagesRef.push({
     text: text,
-    sender: username,
+    sender: currentUser.email,
     timestamp: firebase.database.ServerValue.TIMESTAMP
   });
 
