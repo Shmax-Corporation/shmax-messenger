@@ -16,16 +16,15 @@ const database = firebase.database();
 
 let currentUser = null;
 
-// При загрузке страницы — проверяем, авторизован ли пользователь
+// При загрузке — проверка состояния авторизации
 window.onload = function () {
   auth.onAuthStateChanged((user) => {
     if (user) {
-      // Пользователь вошёл
       currentUser = user;
+      updateProfileDisplayName(); // Сохраняем имя при входе
       showChat(user);
       loadMessagesFromFirebase();
     } else {
-      // Не вошёл
       showAuth();
     }
   });
@@ -42,22 +41,80 @@ function showChat(user) {
   document.getElementById('authPage').classList.add('hidden');
   document.getElementById('chatPage').classList.remove('hidden');
 
-  document.getElementById('currentUser').textContent = user.displayName || user.email;
-  document.getElementById('userPhoto').src = user.photoURL || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(user.displayName || 'User') + '&background=2ecc71&color=fff';
+  const displayName = user.displayName || user.email.split('@')[0];
+  document.getElementById('currentUser').textContent = displayName;
+
+  const photoURL = user.photoURL || `https://ui-avatars.com/api/?name=${encodeURIComponent(displayName)}&background=2ecc71&color=fff`;
+  document.getElementById('userPhoto').src = photoURL;
 }
 
-// Вход через Google
-function signInWithGoogle() {
-  const provider = new firebase.auth.GoogleAuthProvider();
-  auth.signInWithPopup(provider)
+// Переключение форм
+function showLogin() {
+  document.getElementById('loginForm').classList.remove('hidden');
+  document.getElementById('registerForm').classList.add('hidden');
+  document.getElementById('loginTab').classList.add('active');
+  document.getElementById('registerTab').classList.remove('active');
+}
+
+function showRegister() {
+  document.getElementById('loginForm').classList.add('hidden');
+  document.getElementById('registerForm').classList.remove('hidden');
+  document.getElementById('loginTab').classList.remove('active');
+  document.getElementById('registerTab').classList.add('active');
+}
+
+// Регистрация по email и паролю
+function registerWithEmail() {
+  const name = document.getElementById('registerName').value.trim();
+  const email = document.getElementById('registerEmail').value.trim();
+  const password = document.getElementById('registerPassword').value;
+
+  if (!name || !email || !password) {
+    alert('Заполните все поля');
+    return;
+  }
+
+  auth.createUserWithEmailAndPassword(email, password)
+    .then((cred) => {
+      // Устанавливаем отображаемое имя
+      return cred.user.updateProfile({
+        displayName: name
+      });
+    })
+    .then(() => {
+      console.log('Пользователь зарегистрирован:', auth.currentUser);
+    })
+    .catch((error) => {
+      alert('Ошибка: ' + error.message);
+    });
+}
+
+// Вход по email и паролю
+function loginWithEmail() {
+  const email = document.getElementById('loginEmail').value.trim();
+  const password = document.getElementById('loginPassword').value;
+
+  auth.signInWithEmailAndPassword(email, password)
     .catch((error) => {
       alert('Ошибка входа: ' + error.message);
     });
 }
 
-// Выход (опционально — можно добавить позже)
-function signOut() {
-  auth.signOut();
+// Вход через Google
+function signInWithGoogle() {
+  const provider = new firebase.auth.GoogleAuthProvider();
+  auth.signInWithPopup(provider).catch((error) => {
+    alert('Ошибка: ' + error.message);
+  });
+}
+
+// Обновляем имя в профиле (если пользователь изменил имя)
+function updateProfileDisplayName() {
+  const user = auth.currentUser;
+  if (user && !user.displayName) {
+    const name = user.email.split('@')[0].replace('.', ' ');
+    user.updateProfile({ displayName: name });
+  }
 }
 
 // Загрузка сообщений
@@ -78,6 +135,8 @@ function addMessageToDOM(text, sender) {
   const messageElement = document.createElement('div');
   messageElement.classList.add('message');
 
+  const displayName = getDisplayName(sender);
+
   if (sender === currentUser?.email) {
     messageElement.classList.add('own');
   } else if (sender === 'system') {
@@ -86,7 +145,6 @@ function addMessageToDOM(text, sender) {
     messageElement.classList.add('other');
   }
 
-  const displayName = getDisplayName(sender);
   const prefix = sender === 'system' ? '' : sender === currentUser?.email ? '' : `${displayName}: `;
   messageElement.textContent = prefix + text;
 
@@ -94,7 +152,7 @@ function addMessageToDOM(text, sender) {
   container.scrollTop = container.scrollHeight;
 }
 
-// Получить имя из email (или использовать email)
+// Получить имя из email
 function getDisplayName(email) {
   if (email === 'system') return 'Система';
   return email.split('@')[0].replace('.', ' ');
@@ -109,8 +167,7 @@ function sendMessage() {
 
   if (text === '') return;
 
-  const messagesRef = database.ref('messages');
-  messagesRef.push({
+  database.ref('messages').push({
     text: text,
     sender: currentUser.email,
     timestamp: firebase.database.ServerValue.TIMESTAMP

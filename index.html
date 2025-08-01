@@ -8,15 +8,41 @@
 </head>
 <body>
   <!-- Страница входа -->
-  <div id="authPage" class="page">
-    <div class="card">
-      <h1>Shmax</h1>
-      <p>Войдите через Google, чтобы начать общение</p>
-      <button id="googleSignIn" onclick="signInWithGoogle()">
-        🔔 Войти через Google
-      </button>
+<!-- Страница авторизации -->
+<div id="authPage" class="page">
+  <div class="card">
+    <h1>Shmax</h1>
+    <p>Добро пожаловать в мессенджер</p>
+
+    <!-- Переключение между формами -->
+    <div class="tabs">
+      <button id="loginTab" class="tab active" onclick="showLogin()">Войти</button>
+      <button id="registerTab" class="tab" onclick="showRegister()">Регистрация</button>
     </div>
+
+    <!-- Форма входа -->
+    <form id="loginForm" class="auth-form">
+      <input type="email" id="loginEmail" placeholder="Email" required />
+      <input type="password" id="loginPassword" placeholder="Пароль" required />
+      <button type="button" onclick="loginWithEmail()">Войти</button>
+    </form>
+
+    <!-- Форма регистрации -->
+    <form id="registerForm" class="auth-form hidden">
+      <input type="text" id="registerName" placeholder="Ваше имя" required />
+      <input type="email" id="registerEmail" placeholder="Email" required />
+      <input type="password" id="registerPassword" placeholder="Пароль" required />
+      <button type="button" onclick="registerWithEmail()">Зарегистрироваться</button>
+    </form>
+
+    <div class="separator">или</div>
+
+    <!-- Кнопка Google -->
+    <button id="googleSignIn" class="google-btn" onclick="signInWithGoogle()">
+      🔔 Войти через Google
+    </button>
   </div>
+</div>
 
   <!-- Основной чат -->
   <div id="chatPage" class="page hidden">

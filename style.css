@@ -166,3 +166,88 @@ header {
 .input-area button:hover {
   opacity: 0.9;
 }
+
+/* Вкладки */
+.tabs {
+  display: flex;
+  margin-bottom: 20px;
+  border-bottom: 1px solid #ddd;
+}
+
+.tab {
+  padding: 10px 20px;
+  background: none;
+  border: none;
+  font-size: 1rem;
+  cursor: pointer;
+  color: #7f8c8d;
+  border-bottom: 3px solid transparent;
+}
+
+.tab.active {
+  color: #27ae60;
+  border-bottom: 3px solid #27ae60;
+}
+
+/* Формы */
+.auth-form {
+  width: 100%;
+}
+
+.auth-form input {
+  width: 100%;
+  padding: 12px;
+  margin: 8px 0;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  font-size: 1rem;
+}
+
+.auth-form button {
+  width: 100%;
+  margin-top: 10px;
+}
+
+/* Google кнопка */
+.google-btn {
+  background: white;
+  color: #333;
+  border: 1px solid #ddd;
+  padding: 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: bold;
+  margin-top: 15px;
+}
+
+.google-btn:hover {
+  background: #f8f8f8;
+}
+
+/* Сепаратор */
+.separator {
+  text-align: center;
+  color: #7f8c8d;
+  margin: 20px 0;
+  position: relative;
+}
+
+.separator::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 50%;
+  width: 45%;
+  height: 1px;
+  background: #ddd;
+}
+
+.separator::after {
+  content: "";
+  position: absolute;
+  right: 0;
+  top: 50%;
+  width: 45%;
+  height: 1px;
+  background: #ddd;
+}
