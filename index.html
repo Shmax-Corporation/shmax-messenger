@@ -1,0 +1,41 @@
+﻿<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Shmax — Мессенджер</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <!-- Страница регистрации -->
+  <div id="registerPage" class="page">
+    <div class="card">
+      <h1>Shmax</h1>
+      <p>Добро пожаловать! Войдите, чтобы начать общение.</p>
+      <input type="text" id="username" placeholder="Введите имя" />
+      <button onclick="registerUser()">Войти в чат</button>
+    </div>
+  </div>
+
+  <!-- Основной чат -->
+  <div id="chatPage" class="page hidden">
+    <div class="chat-container">
+      <header>
+        <h2>Shmax</h2>
+        <span id="currentUser"></span>
+      </header>
+
+      <div id="messages" class="messages">
+        <div class="message system">Добро пожаловать в Shmax! Напишите что-нибудь.</div>
+      </div>
+
+      <div class="input-area">
+        <input type="text" id="messageInput" placeholder="Напишите сообщение..." />
+        <button onclick="sendMessage()">Отправить</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
